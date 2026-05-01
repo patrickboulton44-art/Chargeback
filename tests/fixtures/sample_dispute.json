@@ -1,0 +1,86 @@
+{
+  "dispute": {
+    "id": 999000111,
+    "order_id": 450789469,
+    "type": "chargeback",
+    "reason": "product_not_received",
+    "network_reason_code": "4855",
+    "status": "needs_response",
+    "amount": "129.95",
+    "currency": "GBP",
+    "initiated_at": "2026-04-20T10:15:00Z",
+    "evidence_due_by": "2026-05-04T23:59:00Z"
+  },
+  "order": {
+    "id": 450789469,
+    "name": "#1001",
+    "created_at": "2026-03-15T14:22:00Z",
+    "processed_at": "2026-03-15T14:22:30Z",
+    "total_price": "129.95",
+    "currency": "GBP",
+    "financial_status": "paid",
+    "fulfillment_status": "fulfilled",
+    "browser_ip": "82.18.44.12",
+    "customer": { "id": 207119551 },
+    "line_items": [
+      { "name": "Merino Crew Jumper - Navy / M", "quantity": 1, "price": "129.95", "sku": "MCJ-NVY-M", "variant_title": "Navy / M" }
+    ],
+    "shipping_address": {
+      "name": "Jane Doe",
+      "address1": "12 Acacia Avenue",
+      "address2": "",
+      "city": "London",
+      "province": "England",
+      "zip": "SW1A 1AA",
+      "country": "United Kingdom"
+    },
+    "billing_address": {
+      "name": "Jane Doe",
+      "address1": "12 Acacia Avenue",
+      "address2": "",
+      "city": "London",
+      "province": "England",
+      "zip": "SW1A 1AA",
+      "country": "United Kingdom"
+    }
+  },
+  "customer": {
+    "id": 207119551,
+    "email": "jane.doe@example.com",
+    "created_at": "2025-08-10T09:00:00Z",
+    "orders_count": 4,
+    "total_spent": "612.40",
+    "verified_email": true,
+    "state": "enabled"
+  },
+  "fulfilments": [
+    {
+      "id": 255858046,
+      "status": "success",
+      "created_at": "2026-03-16T09:00:00Z",
+      "updated_at": "2026-03-18T11:42:00Z",
+      "shipment_status": "delivered",
+      "tracking_company": "Royal Mail",
+      "tracking_number": "RM123456789GB",
+      "tracking_url": "https://www.royalmail.com/track/RM123456789GB"
+    }
+  ],
+  "transactions": [
+    {
+      "id": 1068278484,
+      "kind": "sale",
+      "status": "success",
+      "gateway": "shopify_payments",
+      "created_at": "2026-03-15T14:22:30Z",
+      "amount": "129.95",
+      "currency": "GBP",
+      "payment_details": {
+        "avs_result_code": "Y",
+        "cvv_result_code": "M",
+        "credit_card_bin": "424242",
+        "credit_card_company": "Visa",
+        "credit_card_number": "•••• •••• •••• 4242"
+      }
+    }
+  ]
+}

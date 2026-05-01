@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/shopify-webhook.js": {
+      "maxDuration": 10
+    },
+    "api/process-dispute.js": {
+      "maxDuration": 60
+    }
+  }
+}
