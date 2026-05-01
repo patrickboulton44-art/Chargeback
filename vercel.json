@@ -1,11 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/shopify-webhook.js": {
-      "maxDuration": 10
-    },
-    "api/process-dispute.js": {
-      "maxDuration": 60
-    }
-  }
+    "api/shopify-webhook.js": { "maxDuration": 10 },
+    "api/process-dispute.js": { "maxDuration": 60 },
+    "api/auth/shopify/install.js": { "maxDuration": 5 },
+    "api/auth/shopify/callback.js": { "maxDuration": 30 },
+    "api/auth/logout.js": { "maxDuration": 5 },
+    "api/dashboard.js": { "maxDuration": 10 }
+  },
+  "rewrites": [
+    { "source": "/dashboard", "destination": "/api/dashboard" }
+  ]
 }

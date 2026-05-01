@@ -1,15 +1,14 @@
-import { verifyShopifyHmac } from '../lib/hmac.js';
+import { verifyWebhookHmac } from '../lib/hmac.js';
+import { getAdminClient } from '../lib/supabase.js';
 
-// Vercel serverless entrypoint for Shopify dispute webhooks.
-// Subscribe at: https://{shop}.myshopify.com/admin/settings/notifications
-// Topics: disputes/create, disputes/update
+// Multi-tenant webhook receiver. One URL, all installed shops.
+// Topics handled:
+//   - disputes/create, disputes/update → dispatch to processor
+//   - app/uninstalled → mark shop uninstalled
 //
-// We verify HMAC on the raw body, ack with 200 fast, and fire-and-forget
-// the heavy processing job. Shopify retries if we 5xx or take >5s.
+// Shopify retries on 5xx or >5s response, so ack fast.
 
-export const config = {
-  api: { bodyParser: false },
-};
+export const config = { api: { bodyParser: false } };
 
 async function readRawBody(req) {
   const chunks = [];
@@ -32,8 +31,15 @@ export default async function handler(req, res) {
   }
 
   const hmac = req.headers['x-shopify-hmac-sha256'];
-  if (!verifyShopifyHmac(rawBody, hmac)) {
+  if (!verifyWebhookHmac(rawBody, hmac)) {
     res.status(401).json({ error: 'invalid_hmac' });
+    return;
+  }
+
+  const shopDomain = req.headers['x-shopify-shop-domain'];
+  const topic = req.headers['x-shopify-topic'];
+  if (!shopDomain || typeof shopDomain !== 'string') {
+    res.status(400).json({ error: 'missing_shop_domain' });
     return;
   }
 
@@ -45,15 +51,46 @@ export default async function handler(req, res) {
     return;
   }
 
+  const supabase = getAdminClient();
+
+  if (topic === 'app/uninstalled') {
+    await supabase
+      .from('shops')
+      .update({ uninstalled_at: new Date().toISOString() })
+      .eq('shop_domain', shopDomain);
+    res.status(200).json({ ok: true });
+    return;
+  }
+
+  if (topic !== 'disputes/create' && topic !== 'disputes/update') {
+    // Unknown topic — ack so Shopify doesn't retry, but do nothing.
+    res.status(200).json({ ok: true, ignored: topic });
+    return;
+  }
+
   const disputeId = payload?.id;
   if (!disputeId) {
     res.status(400).json({ error: 'missing_dispute_id' });
     return;
   }
 
-  // Ack immediately. Kick off the processor without awaiting so Shopify
-  // doesn't time out. In production this would push to a queue (Inngest,
-  // QStash, etc.) for retries — for v0 we self-invoke the processor.
+  // Confirm the shop is known + installed before doing real work.
+  const { data: shop, error } = await supabase
+    .from('shops')
+    .select('shop_domain, uninstalled_at')
+    .eq('shop_domain', shopDomain)
+    .maybeSingle();
+
+  if (error || !shop) {
+    res.status(404).json({ error: 'shop_not_found' });
+    return;
+  }
+  if (shop.uninstalled_at) {
+    res.status(410).json({ error: 'shop_uninstalled' });
+    return;
+  }
+
+  // Dispatch to processor (fire-and-forget). Production should use a queue.
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const proto = req.headers['x-forwarded-proto'] || 'https';
   const url = `${proto}://${host}/api/process-dispute`;
@@ -62,12 +99,10 @@ export default async function handler(req, res) {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      'x-internal-secret': process.env.INTERNAL_PROCESS_SECRET || '',
+      'x-internal-secret': process.env.SHOPIFY_API_SECRET || '',
     },
-    body: JSON.stringify({ disputeId }),
-  }).catch((err) => {
-    console.error('failed to dispatch processor', err);
-  });
+    body: JSON.stringify({ shopDomain, disputeId, topic }),
+  }).catch((err) => console.error('processor dispatch failed', err));
 
   res.status(200).json({ ok: true, disputeId });
 }

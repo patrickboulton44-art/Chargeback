@@ -313,6 +313,56 @@
       transform: translateY(2px);
     }
 
+    /* install form */
+    .install-form {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .install-input {
+      flex: 1 1 260px;
+      min-width: 0;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .install-input::placeholder { color: rgba(255, 255, 255, 0.4); }
+
+    .install-input:focus {
+      border-color: rgba(168, 85, 247, 0.6);
+      background: rgba(255, 255, 255, 0.07);
+      box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.12);
+    }
+
+    .install-form .cta {
+      padding: 16px 32px;
+      flex-shrink: 0;
+    }
+
+    .install-helper {
+      font-size: 0.82rem;
+      color: var(--text-faint);
+      margin-top: 14px;
+    }
+
+    .install-helper a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
+    .install-helper a:hover { color: var(--purple-light); }
+
     /* ------- sections ------- */
     section + section { padding-top: 100px; }
 
@@ -498,6 +548,7 @@
     <div class="nav-links">
       <a href="#how">How it works</a>
       <a href="#why">Why it works</a>
+      <a href="/dashboard">Sign in</a>
     </div>
   </nav>
 
@@ -511,10 +562,22 @@
       <p class="subhead">
         AI-drafted dispute evidence for Shopify merchants. The moment a chargeback fires, we pull your order, customer, and fulfilment data and draft a bank-ready response — so you review in minutes, not hours.
       </p>
-      <div class="cta-group">
-        <a href="#how" class="cta">Get started</a>
-        <a href="#how" class="cta-secondary">How it works ↓</a>
-      </div>
+      <form action="/api/auth/shopify/install" method="get" class="install-form" autocomplete="off">
+        <input
+          class="install-input"
+          type="text"
+          name="shop"
+          placeholder="your-store.myshopify.com"
+          aria-label="Your Shopify store domain"
+          required
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        <button type="submit" class="cta">Get started →</button>
+      </form>
+      <p class="install-helper">
+        Already installed? <a href="/dashboard">Open your dashboard →</a>
+      </p>
     </section>
 
     <section id="how" class="how">
@@ -564,8 +627,20 @@
 
     <section class="final-cta">
       <h2>Stop bleeding revenue to chargebacks.</h2>
-      <p>Built for Shopify merchants who'd rather review evidence than write it.</p>
-      <a href="mailto:patrickboulton44@gmail.com?subject=Chargeback%20—%20Get%20started" class="cta">Get started</a>
+      <p>Install in under a minute. No code, no migration. Connect your Shopify store and we draft your next dispute response automatically.</p>
+      <form action="/api/auth/shopify/install" method="get" class="install-form" autocomplete="off">
+        <input
+          class="install-input"
+          type="text"
+          name="shop"
+          placeholder="your-store.myshopify.com"
+          aria-label="Your Shopify store domain"
+          required
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        <button type="submit" class="cta">Get started →</button>
+      </form>
     </section>
 
     <footer>
