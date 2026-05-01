@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chargeback — Win Shopify disputes on autopilot</title>
+  <meta name="description" content="AI-drafted dispute evidence for Shopify merchants. The moment a chargeback fires, we draft your response — ready to review in minutes, not hours." />
+  <meta name="theme-color" content="#0a0418" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #07040f;
+      --bg-card: rgba(255, 255, 255, 0.035);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(168, 85, 247, 0.35);
+      --text: rgba(255, 255, 255, 0.96);
+      --text-muted: rgba(255, 255, 255, 0.6);
+      --text-faint: rgba(255, 255, 255, 0.4);
+      --purple: #a855f7;
+      --purple-light: #c084fc;
+      --purple-deep: #7c3aed;
+      --magenta: #d946ef;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-base);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    a { color: inherit; }
+
+    /* ------- background cascade ------- */
+    .bg-blobs {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.7;
+      will-change: transform;
+    }
+
+    .blob-1 {
+      width: 620px;
+      height: 620px;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.65), transparent 70%);
+      top: -12%;
+      left: -10%;
+      animation: drift-1 28s ease-in-out infinite;
+    }
+
+    .blob-2 {
+      width: 740px;
+      height: 740px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.55), transparent 70%);
+      top: 25%;
+      right: -18%;
+      animation: drift-2 34s ease-in-out infinite;
+    }
+
+    .blob-3 {
+      width: 520px;
+      height: 520px;
+      background: radial-gradient(circle, rgba(217, 70, 239, 0.5), transparent 70%);
+      bottom: 5%;
+      left: 18%;
+      animation: drift-3 30s ease-in-out infinite;
+    }
+
+    .blob-4 {
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(192, 132, 252, 0.45), transparent 70%);
+      top: 55%;
+      left: 48%;
+      animation: drift-4 22s ease-in-out infinite;
+    }
+
+    @keyframes drift-1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50%      { transform: translate(120px, 80px) scale(1.12); }
+    }
+    @keyframes drift-2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50%      { transform: translate(-100px, 60px) scale(0.95); }
+    }
+    @keyframes drift-3 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50%      { transform: translate(80px, -90px) scale(1.08); }
+    }
+    @keyframes drift-4 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50%      { transform: translate(-70px, -40px) scale(1.05); }
+    }
+
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.05;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ------- layout ------- */
+    nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 28px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .logo {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--purple);
+      box-shadow: 0 0 12px var(--purple), 0 0 24px rgba(168, 85, 247, 0.6);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--purple-light); }
+
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ------- hero ------- */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: 28px;
+      padding: 100px 0 80px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(168, 85, 247, 0.08);
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--purple-light);
+      letter-spacing: 0.02em;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--purple);
+      box-shadow: 0 0 8px var(--purple);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+
+    h1 {
+      font-size: clamp(2.6rem, 7.5vw, 5.6rem);
+      font-weight: 800;
+      line-height: 1.02;
+      letter-spacing: -0.045em;
+      background: linear-gradient(180deg, #ffffff 0%, #c084fc 95%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      max-width: 14ch;
+    }
+
+    .subhead {
+      font-size: clamp(1rem, 1.4vw, 1.2rem);
+      color: var(--text-muted);
+      max-width: 58ch;
+      line-height: 1.65;
+    }
+
+    .cta-group {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    .cta {
+      position: relative;
+      display: inline-block;
+      padding: 18px 40px;
+      background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.05rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      letter-spacing: -0.01em;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s;
+      animation: pulse-glow 3.5s ease-in-out infinite;
+      cursor: pointer;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow:
+          0 0 22px rgba(168, 85, 247, 0.55),
+          0 0 44px rgba(168, 85, 247, 0.32),
+          0 0 80px rgba(168, 85, 247, 0.18),
+          inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      }
+      50% {
+        box-shadow:
+          0 0 32px rgba(168, 85, 247, 0.75),
+          0 0 64px rgba(168, 85, 247, 0.48),
+          0 0 110px rgba(168, 85, 247, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    .cta:hover {
+      transform: translateY(-2px) scale(1.025);
+      box-shadow:
+        0 0 36px rgba(168, 85, 247, 0.85),
+        0 0 72px rgba(168, 85, 247, 0.55),
+        0 0 130px rgba(168, 85, 247, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .cta:focus-visible {
+      outline: 2px solid white;
+      outline-offset: 4px;
+    }
+
+    .cta-secondary {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 10px 16px;
+      transition: color 0.2s, transform 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cta-secondary:hover {
+      color: var(--purple-light);
+      transform: translateY(2px);
+    }
+
+    /* ------- sections ------- */
+    section + section { padding-top: 100px; }
+
+    h2 {
+      font-size: clamp(1.9rem, 4vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      text-align: center;
+      background: linear-gradient(180deg, #ffffff 0%, #c084fc 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: var(--text-muted);
+      max-width: 56ch;
+      margin: 0 auto 56px;
+      font-size: 1.02rem;
+    }
+
+    /* how */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .step {
+      position: relative;
+      padding: 36px 32px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+      overflow: hidden;
+    }
+
+    .step::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.06), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .step:hover {
+      transform: translateY(-4px);
+      border-color: var(--border-strong);
+      box-shadow: 0 24px 48px rgba(168, 85, 247, 0.12);
+    }
+
+    .step:hover::before { opacity: 1; }
+
+    .step-num {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--purple-light);
+      letter-spacing: 0.15em;
+      margin-bottom: 18px;
+      font-family: 'Inter', monospace;
+    }
+
+    .step h3 {
+      font-size: 1.32rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      letter-spacing: -0.015em;
+    }
+
+    .step p {
+      color: var(--text-muted);
+      font-size: 0.96rem;
+      line-height: 1.65;
+    }
+
+    /* why */
+    .why ul {
+      list-style: none;
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .why li {
+      padding: 22px 26px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+
+    .why li:hover {
+      border-color: var(--border-strong);
+      transform: translateX(4px);
+    }
+
+    .why li strong {
+      color: var(--text);
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+      letter-spacing: -0.005em;
+    }
+
+    /* final cta */
+    .final-cta {
+      padding: 120px 24px 100px;
+      text-align: center;
+    }
+
+    .final-cta h2 { margin-bottom: 24px; }
+
+    .final-cta p {
+      color: var(--text-muted);
+      max-width: 50ch;
+      margin: 0 auto 36px;
+      font-size: 1.05rem;
+    }
+
+    /* footer */
+    footer {
+      text-align: center;
+      padding: 32px 24px 40px;
+      color: var(--text-faint);
+      font-size: 0.82rem;
+      border-top: 1px solid var(--border);
+      letter-spacing: 0.02em;
+    }
+
+    footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    footer a:hover { color: var(--purple-light); }
+
+    /* mobile */
+    @media (max-width: 640px) {
+      nav { padding: 20px 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 80px 0 60px; gap: 22px; }
+      .blob { filter: blur(70px); }
+      .step { padding: 28px 24px; }
+      section + section { padding-top: 70px; }
+      .final-cta { padding: 80px 20px 70px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .blob, .cta, .badge-dot { animation: none !important; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+  </div>
+  <div class="grain"></div>
+
+  <nav>
+    <div class="logo">
+      <span class="logo-dot"></span>
+      <span>Chargeback</span>
+    </div>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#why">Why it works</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="badge">
+        <span class="badge-dot"></span>
+        <span>Shopify chargeback responder</span>
+      </div>
+      <h1>Win chargebacks while you sleep.</h1>
+      <p class="subhead">
+        AI-drafted dispute evidence for Shopify merchants. The moment a chargeback fires, we pull your order, customer, and fulfilment data and draft a bank-ready response — so you review in minutes, not hours.
+      </p>
+      <div class="cta-group">
+        <a href="#how" class="cta">Get started</a>
+        <a href="#how" class="cta-secondary">How it works ↓</a>
+      </div>
+    </section>
+
+    <section id="how" class="how">
+      <h2>How it works</h2>
+      <p class="section-sub">Three steps. No migration. No template madlibs.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01 — CONNECT</div>
+          <h3>Plug in your Shopify store</h3>
+          <p>Install the app and grant read access to orders, customers, and disputes. Done in under two minutes.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02 — DETECT</div>
+          <h3>A chargeback fires</h3>
+          <p>We catch the webhook in seconds. Full context — order, customer history, fulfilment, AVS &amp; CVV results, IP — goes to Claude with a tightly-tuned prompt.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03 — REVIEW</div>
+          <h3>You approve and submit</h3>
+          <p>Get a structured response: cover statement, evidence timeline, key data points, and a checklist of extras to attach. Approve it. Submit it.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="why" class="why">
+      <h2>Why it works</h2>
+      <p class="section-sub">Most chargeback tools either auto-submit garbage or make you write everything from scratch. Neither wins.</p>
+      <ul>
+        <li>
+          <strong>Powered by Claude.</strong>
+          The most capable model for structured reasoning. Real evidence, not template fill-in-the-blanks.
+        </li>
+        <li>
+          <strong>Reason-code-aware.</strong>
+          Strategy switches based on dispute type — fraud, not received, not as described — leading with the strongest evidence for that bank reviewer.
+        </li>
+        <li>
+          <strong>Honest about gaps.</strong>
+          If evidence is missing, we flag it. No invented details that get the dispute thrown out the moment a reviewer cross-checks.
+        </li>
+        <li>
+          <strong>You stay in control.</strong>
+          We never auto-submit. You review every response before it goes to the bank.
+        </li>
+      </ul>
+    </section>
+
+    <section class="final-cta">
+      <h2>Stop bleeding revenue to chargebacks.</h2>
+      <p>Built for Shopify merchants who'd rather review evidence than write it.</p>
+      <a href="mailto:patrickboulton44@gmail.com?subject=Chargeback%20—%20Get%20started" class="cta">Get started</a>
+    </section>
+
+    <footer>
+      <p>Chargeback · Built with <a href="https://www.anthropic.com/claude" rel="noopener">Claude</a></p>
+    </footer>
+  </main>
+</body>
+</html>
