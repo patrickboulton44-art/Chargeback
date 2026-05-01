@@ -1,5 +1,7 @@
 import { verifyWebhookHmac } from '../lib/hmac.js';
 import { getAdminClient } from '../lib/supabase.js';
+import { parseShopifyJson } from '../lib/safe-json.js';
+import { getAppUrl } from '../lib/shopify-oauth.js';
 
 // Multi-tenant webhook receiver. One URL, all installed shops.
 // Topics handled:
@@ -45,7 +47,7 @@ export default async function handler(req, res) {
 
   let payload;
   try {
-    payload = JSON.parse(rawBody.toString('utf8'));
+    payload = parseShopifyJson(rawBody.toString('utf8'));
   } catch {
     res.status(400).json({ error: 'invalid_json' });
     return;
@@ -68,7 +70,8 @@ export default async function handler(req, res) {
     return;
   }
 
-  const disputeId = payload?.id;
+  // Dispute IDs come back from parseShopifyJson as strings (preserves precision).
+  const disputeId = payload?.id != null ? String(payload.id) : null;
   if (!disputeId) {
     res.status(400).json({ error: 'missing_dispute_id' });
     return;
@@ -90,10 +93,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Dispatch to processor (fire-and-forget). Production should use a queue.
-  const host = req.headers['x-forwarded-host'] || req.headers.host;
-  const proto = req.headers['x-forwarded-proto'] || 'https';
-  const url = `${proto}://${host}/api/process-dispute`;
+  // Dispatch to processor (fire-and-forget). Hardcoded URL so we never trust
+  // request-supplied X-Forwarded-* headers, which can be spoofed.
+  const url = `${getAppUrl()}/api/process-dispute`;
 
   fetch(url, {
     method: 'POST',

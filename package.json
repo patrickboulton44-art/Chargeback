@@ -1,6 +1,6 @@
 {
   "name": "chargeback",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "description": "Shopify chargeback dispute responder powered by the Claude API",
@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",
-    "@supabase/supabase-js": "^2.45.0"
+    "@supabase/supabase-js": "^2.45.0",
+    "json-bigint": "^1.0.0"
   },
   "engines": {
     "node": "20.x"

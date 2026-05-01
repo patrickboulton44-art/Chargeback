@@ -61,11 +61,13 @@ export default async function handler(req, res) {
     const claudeResult = await generateDisputeResponse(filtered);
     const evidence = parseAndValidate(claudeResult.raw);
 
+    // IDs are stored as text to preserve 64-bit precision. parseShopifyJson
+    // already returns them as strings, but coerce defensively here.
     const { error: upsertError } = await supabase.from('disputes').upsert(
       {
         shop_domain: shopDomain,
-        shopify_dispute_id: disputeId,
-        shopify_order_id: raw.dispute.order_id,
+        shopify_dispute_id: String(disputeId),
+        shopify_order_id: raw.dispute.order_id != null ? String(raw.dispute.order_id) : null,
         status: 'drafted',
         reason: raw.dispute.reason,
         amount: raw.dispute.amount,

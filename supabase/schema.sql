@@ -25,8 +25,9 @@ create index if not exists shops_shop_domain_idx on public.shops (shop_domain);
 create table if not exists public.disputes (
   id uuid primary key default gen_random_uuid(),
   shop_domain text not null references public.shops (shop_domain) on delete cascade,
-  shopify_dispute_id bigint not null,
-  shopify_order_id bigint,
+  -- Shopify IDs stored as text. They're 64-bit and now exceed JS Number.MAX_SAFE_INTEGER.
+  shopify_dispute_id text not null,
+  shopify_order_id text,
   status text not null default 'pending',         -- pending | drafted | submitted | won | lost
   reason text,
   amount text,
